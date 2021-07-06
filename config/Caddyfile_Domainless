@@ -3,9 +3,10 @@
 	log {
 		level INFO
 	}
+	auto_https off
 }
 
-:443, <DOMAIN>
+:443
 tls /etc/naiveproxy/cert.pem /etc/naiveproxy/key.pem
 route {
 	header Server nginx
