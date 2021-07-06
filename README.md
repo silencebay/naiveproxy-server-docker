@@ -1,7 +1,7 @@
 # Naïve Docker
 upstream from [docker-images](https://github.com/wppurking/docker-images)
 
-Run [NaïveProxy](https://github.com/klzgrad/naiveproxy) in Docker.
+Run [NaïveProxy](https://github.com/klzgrad/naiveproxy) as a server in Docker.
 
 ## Usage
 
