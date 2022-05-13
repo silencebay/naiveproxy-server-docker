@@ -15,6 +15,18 @@ FROM --platform=$TARGETPLATFORM alpine AS runtime
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 
+ARG NAIVE_USER_ID=1000
+ARG NAIVE_GROUP_ID=1000
+
+RUN set -eux; \
+    \
+	addgroup -g "${NAIVE_GROUP_ID}" -S naive; \
+	adduser -u "${NAIVE_USER_ID}" -D -S -s /bin/bash -G naive naive; \
+	sed -i '/^naive/s/!/*/' /etc/shadow; \
+	echo "PS1='\w\$ '" >> /home/naive/.bashrc;
+
+USER naive
+
 COPY --from=builder /app/caddy /usr/bin/caddy
 ADD ./html /var/www/html
 ADD ./config /etc/naiveproxy

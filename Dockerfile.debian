@@ -1,0 +1,75 @@
+FROM --platform=$TARGETPLATFORM golang:1.19 AS builder
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
+
+WORKDIR /app
+
+RUN set -eux; \
+    \
+    go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest; \
+    /go/bin/xcaddy build --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive
+
+
+FROM --platform=$TARGETPLATFORM debian:bullseye-slim AS runtime
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
+ARG NAIVE_USER_ID=1000
+ARG NAIVE_GROUP_ID=1000
+
+ENV TINI_VERSION v0.19.0
+
+COPY --from=builder /app/caddy /usr/local/bin/caddy
+COPY docker-entrypoint.sh /
+ADD ./html /var/www/html
+ADD ./config /etc/naiveproxy
+
+RUN set -eux; \
+    \
+    addgroup --gid "${NAIVE_GROUP_ID}" --system naive; \
+    adduser --uid "${NAIVE_USER_ID}" --disabled-password --system --shell /bin/bash --ingroup naive naive; \
+    sed -i '/^naive/s/!/*/' /etc/shadow; \
+    echo "PS1='\w\$ '" >> /home/naive/.bashrc; \
+    \
+# Add Tini and some dependencies \
+    \
+    savedAptMark="$(apt-mark showmanual)"; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        libcap2-bin \
+    ; \
+    rm -r /var/lib/apt/lists/*; \
+    \
+    if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then architecture="amd64"; fi; \
+    if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then architecture="arm64"; fi; \
+    if [ "${TARGETPLATFORM}" = "linux/arm/v7" ] ; then architecture="armhf"; fi; \
+    \
+    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${architecture} -o /tini; \
+    chmod +x /tini; \
+    \
+    chmod +x /docker-entrypoint.sh /usr/local/bin/caddy; \
+    setcap 'cap_net_bind_service=+ep' /usr/local/bin/caddy; \
+    \
+# reset apt-mark's "manual" list so that "purge --auto-remove" will remove all build dependencies
+    apt-mark auto '.*' > /dev/null; \
+    [ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
+    find /usr/local -type f -executable -exec ldd '{}' ';' \
+        | awk '/=>/ { print $(NF-1) }' \
+        | sort -u \
+        | xargs -r dpkg-query --search \
+        | cut -d: -f1 \
+        | sort -u \
+        | xargs -r apt-mark manual \
+    ; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+    \
+# some test \
+    \
+    caddy version
+
+
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
+CMD [ "/usr/local/bin/caddy", "run", "--config", "/etc/naiveproxy/Caddyfile" ]
