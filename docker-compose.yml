@@ -1,0 +1,18 @@
+version: "3.7"
+
+services:
+  naiveproxy:
+    image: ghcr.io/silencebay/naiveproxy:debian-latest
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - "PREFER_IPV4=true"
+      - "XDG_CONFIG_HOME=/home/naive"
+    volumes:
+      - ./config:/etc/naiveproxy:ro
+      - ./cert:/cert
+    network_mode: host
+
+    restart: always
