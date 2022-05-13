@@ -1,21 +1,32 @@
 {
-	# debug
-	log {
-		level INFO
-	}
+		# debug
+		log {
+				level INFO
+		}
+		storage file_system /home/naive/.config/caddy
+		admin off
+		servers {
+				protocol {
+						experimental_http3
+				}
+		}
 }
 
-:443, <DOMAIN>
-tls /etc/naiveproxy/cert.pem /etc/naiveproxy/key.pem
+:443, example.com
+tls me@example.com
 route {
-	header Server nginx
-	forward_proxy {
-		basic_auth <USER> <PASS>
-		hide_ip
-		hide_via
-		probe_resistance
-	}
-	file_server {
-		root /var/www/html
-	}
+		header {
+				Server nginx
+				# H3? Todo
+				#Alt-Svc "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000,quic=\":443\"; ma=2592000"
+		}
+		forward_proxy {
+				basic_auth user pass
+				hide_ip
+				hide_via
+				probe_resistance
+		}
+		file_server {
+			root /var/www/html
+		}
 }
