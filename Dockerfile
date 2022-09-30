@@ -1,4 +1,4 @@
-FROM --platform=$TARGETPLATFORM golang:1.17-alpine AS builder
+FROM --platform=$TARGETPLATFORM golang:1.19-alpine AS builder
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 
@@ -6,7 +6,7 @@ WORKDIR /app
 
 RUN set -eux; \
     \
-    go get -u github.com/caddyserver/xcaddy/cmd/xcaddy; \
+    go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest; \
     /go/bin/xcaddy build --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive
 
 ###
