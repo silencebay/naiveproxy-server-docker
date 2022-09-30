@@ -6,9 +6,7 @@
 		storage file_system /home/naive/.config/caddy
 		admin off
 		servers {
-				protocol {
-						experimental_http3
-				}
+			protocols h1 h2 h3
 		}
 }
 

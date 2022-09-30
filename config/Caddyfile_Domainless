@@ -7,9 +7,7 @@
 		admin off
 		auto_https off
 		servers {
-				protocol {
-						experimental_http3
-				}
+			protocols h1 h2 h3
 		}
 }
 
