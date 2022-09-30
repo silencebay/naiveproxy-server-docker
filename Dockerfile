@@ -18,6 +18,20 @@ ARG BUILDPLATFORM
 ARG NAIVE_USER_ID=1000
 ARG NAIVE_GROUP_ID=1000
 
+COPY --from=builder /app/caddy /usr/local/bin/caddy
+ADD ./html /var/www/html
+ADD ./config /etc/naiveproxy
+
+RUN set -eux; \
+    \
+    runDeps=" \
+        libcap \
+    "; \
+    \
+    apk add --no-network --virtual .run-deps \
+        $runDeps \
+    ;
+
 RUN set -eux; \
     \
 	addgroup -g "${NAIVE_GROUP_ID}" -S naive; \
@@ -25,9 +39,14 @@ RUN set -eux; \
 	sed -i '/^naive/s/!/*/' /etc/shadow; \
 	echo "PS1='\w\$ '" >> /home/naive/.bashrc;
 
+RUN set -eux; \
+    \
+    chmod +x /docker-entrypoint.sh /usr/local/bin/caddy; \
+    setcap 'cap_net_bind_service=+ep' /usr/local/bin/caddy; \
+    \
+# some test
+    caddy version
+
 USER naive
 
-COPY --from=builder /app/caddy /usr/bin/caddy
-ADD ./html /var/www/html
-ADD ./config /etc/naiveproxy
-CMD [ "/usr/bin/caddy", "run", "--config", "/etc/naiveproxy/Caddyfile" ]
+CMD [ "/usr/local/bin/caddy", "run", "--config", "/etc/naiveproxy/Caddyfile" ]
