@@ -30,4 +30,4 @@ USER naive
 COPY --from=builder /app/caddy /usr/bin/caddy
 ADD ./html /var/www/html
 ADD ./config /etc/naiveproxy
-CMD /usr/bin/caddy run -config /etc/naiveproxy/Caddyfile
+CMD [ "/usr/bin/caddy", "run", "--config", "/etc/naiveproxy/Caddyfile" ]
