@@ -30,16 +30,12 @@ RUN set -eux; \
     \
     apk add --no-network --virtual .run-deps \
         $runDeps \
-    ;
-
-RUN set -eux; \
+    ; \
     \
 	addgroup -g "${NAIVE_GROUP_ID}" -S naive; \
 	adduser -u "${NAIVE_USER_ID}" -D -S -s /bin/bash -G naive naive; \
 	sed -i '/^naive/s/!/*/' /etc/shadow; \
-	echo "PS1='\w\$ '" >> /home/naive/.bashrc;
-
-RUN set -eux; \
+	echo "PS1='\w\$ '" >> /home/naive/.bashrc; \
     \
     chmod +x /docker-entrypoint.sh /usr/local/bin/caddy; \
     setcap 'cap_net_bind_service=+ep' /usr/local/bin/caddy; \
