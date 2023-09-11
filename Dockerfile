@@ -28,7 +28,7 @@ RUN set -eux; \
         libcap \
     "; \
     \
-    apk add --no-network --virtual .run-deps \
+    apk add --virtual .run-deps \
         $runDeps \
     ; \
     \
