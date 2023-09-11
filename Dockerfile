@@ -7,7 +7,11 @@ WORKDIR /app
 RUN set -eux; \
     \
     go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest; \
-    /go/bin/xcaddy build --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive
+    /go/bin/xcaddy build --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive; \
+    mkdir -p /rootfs//usr/local/bin; \
+    mv caddy /rootfs//usr/local/bin/caddy
+
+COPY ./root/. /rootfs/
 
 ###
 
@@ -18,9 +22,7 @@ ARG BUILDPLATFORM
 ARG NAIVE_USER_ID=1000
 ARG NAIVE_GROUP_ID=1000
 
-COPY --from=builder /app/caddy /usr/local/bin/caddy
-ADD ./html /var/www/html
-ADD ./config /etc/naiveproxy
+COPY --from=builder /rootfs/. /
 
 RUN set -eux; \
     \
