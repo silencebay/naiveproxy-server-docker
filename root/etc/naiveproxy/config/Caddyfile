@@ -8,6 +8,7 @@
 		servers {
 			protocols h1 h2 h3
 		}
+		order forward_proxy before file_server
 }
 
 :443, example.com
